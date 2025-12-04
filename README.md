@@ -1,4 +1,4 @@
-# 🔥 BASED BEATS
+# 🔥 BEATPAD
 
 **Make beats onchain. Classic MPC interface. Web3 native.**
 
