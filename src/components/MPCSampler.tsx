@@ -17,8 +17,8 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAudioPrompt, setShowAudioPrompt] = useState(true);
   const [beatTitle, setBeatTitle] = useState('');
-  const [audioInitialized, setAudioInitialized] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -34,18 +34,39 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     };
   }, []);
 
+  const enableAudio = async () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = createAudioContext();
+    }
+
+    try {
+      // Resume the audio context
+      await audioContextRef.current.resume();
+      console.log('✅ Audio enabled, state:', audioContextRef.current.state);
+      
+      // Play a test tone to verify
+      const osc = audioContextRef.current.createOscillator();
+      const gain = audioContextRef.current.createGain();
+      osc.connect(gain);
+      gain.connect(audioContextRef.current.destination);
+      gain.gain.value = 0.1;
+      osc.frequency.value = 440;
+      osc.start();
+      osc.stop(audioContextRef.current.currentTime + 0.1);
+      
+      setShowAudioPrompt(false);
+    } catch (error) {
+      console.error('❌ Failed to enable audio:', error);
+      alert('Failed to enable audio. Please check permissions.');
+    }
+  };
+
   const handlePadTrigger = async (padIndex: number) => {
     if (!audioContextRef.current) return;
 
-    // ✅ CRITICAL: Resume AudioContext on FIRST interaction (iOS/WebView requirement)
-    if (!audioInitialized || audioContextRef.current.state === 'suspended') {
-      try {
-        await audioContextRef.current.resume();
-        setAudioInitialized(true);
-        console.log('✅ Audio initialized');
-      } catch (e) {
-        console.error('❌ Audio resume failed', e);
-      }
+    // Double-check audio is resumed
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume();
     }
 
     const pad = drumKits[selectedKit].pads[padIndex];
@@ -57,7 +78,11 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     }
 
     // Play the sample
-    playSound(audioContextRef.current, pad.frequency, pad.type);
+    try {
+      playSound(audioContextRef.current, pad.frequency, pad.type);
+    } catch (error) {
+      console.error('Error playing sound:', error);
+    }
 
     setTimeout(() => {
       setActivePads(prev => {
@@ -167,6 +192,16 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
 
   return (
     <div className="mpc-container">
+      {/* Audio Prompt Banner */}
+      {showAudioPrompt && (
+        <div className="audio-prompt-banner">
+          <span>🔊 Tap to enable sound</span>
+          <button className="audio-enable-btn" onClick={enableAudio}>
+            Enable
+          </button>
+        </div>
+      )}
+
       {/* LCD Screen */}
       <div className="lcd-screen">
         <div className="lcd-content">
@@ -179,9 +214,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
               </>
             )}
             {!isRecording && recordedAudio && <span>READY TO SHARE</span>}
-            {!isRecording && !recordedAudio && (
-              <span>{audioInitialized ? 'TAP PADS TO PLAY' : 'TAP ANY PAD'}</span>
-            )}
+            {!isRecording && !recordedAudio && <span>TAP PADS TO PLAY</span>}
           </div>
         </div>
       </div>
