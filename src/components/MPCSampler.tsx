@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
 import { drumKits } from '../config/drumKits';
 import { audioEngine } from '../utils/audioEngine';
 import './MPCSampler.css';
 
-interface MPCSamplerProps {
-  onBeatCreated?: () => void;
-}
-
-export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
-  const { address } = useAccount();
+export default function MPCSampler() {
   const [selectedKit, setSelectedKit] = useState('hiphop');
   const [activePads, setActivePads] = useState<Record<number, boolean>>({});
   const [showAudioPrompt, setShowAudioPrompt] = useState(true);
