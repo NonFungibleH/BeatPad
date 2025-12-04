@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { drumKits } from '../config/drumKits';
 import { audioEngine } from '../utils/audioEngine';
 import './MPCSampler.css';
@@ -7,6 +7,7 @@ export default function MPCSampler() {
   const [selectedKit, setSelectedKit] = useState('hiphop');
   const [activePads, setActivePads] = useState<Record<number, boolean>>({});
   const [showAudioPrompt, setShowAudioPrompt] = useState(true);
+  const lastTriggerTime = useRef<Map<number, number>>(new Map());
 
   useEffect(() => {
     return () => {
@@ -23,10 +24,16 @@ export default function MPCSampler() {
     }
   };
 
-  const handlePadTrigger = (padIndex: number, e: React.TouchEvent | React.MouseEvent) => {
-    // Prevent both touch and mouse events from firing
-    e.preventDefault();
-    e.stopPropagation();
+  const handlePadTrigger = (padIndex: number) => {
+    // Debounce - prevent double triggers within 100ms
+    const now = Date.now();
+    const lastTime = lastTriggerTime.current.get(padIndex) || 0;
+    
+    if (now - lastTime < 100) {
+      return; // Too soon, ignore
+    }
+    
+    lastTriggerTime.current.set(padIndex, now);
     
     if (!audioEngine.isReady()) {
       return;
@@ -92,8 +99,10 @@ export default function MPCSampler() {
           <button
             key={index}
             className={`pad ${activePads[index] ? 'active' : ''}`}
-            onTouchStart={(e) => handlePadTrigger(index, e)}
-            onMouseDown={(e) => handlePadTrigger(index, e)}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handlePadTrigger(index);
+            }}
           >
             <span className="pad-number">{(index + 1).toString().padStart(2, '0')}</span>
             <span className="pad-name">{pad.name}</span>
