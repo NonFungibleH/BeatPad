@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { drumKits } from '../config/drumKits';
-import { createAudioContext, playSound } from '../utils/audioEngine';
+import { audioEngine } from '../utils/audioEngine';
 import './MPCSampler.css';
 
 interface MPCSamplerProps {
@@ -17,40 +17,45 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAudioPrompt, setShowAudioPrompt] = useState(true);
   const [beatTitle, setBeatTitle] = useState('');
 
-  const audioContextRef = useRef<AudioContext | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    audioContextRef.current = createAudioContext();
     return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
+      // Cleanup on unmount
     };
   }, []);
 
-  const handlePadTrigger = (padIndex: number) => {
-    if (!audioContextRef.current) return;
+  const enableAudio = async () => {
+    try {
+      console.log('🎵 Enabling audio...');
+      await audioEngine.initialize();
+      console.log('✅ Audio enabled!');
+      setShowAudioPrompt(false);
+    } catch (error) {
+      console.error('❌ Failed to enable audio:', error);
+    }
+  };
 
-    // ✅ Resume suspended AudioContext for iOS / Base App WebView
-    if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().catch(e => console.log('Audio resume failed', e));
+  const handlePadTrigger = (padIndex: number) => {
+    if (!audioEngine.isReady()) {
+      console.warn('⚠️ Audio not ready');
+      return;
     }
 
     const pad = drumKits[selectedKit].pads[padIndex];
     setActivePads(prev => ({ ...prev, [padIndex]: true }));
 
-    // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
 
-    // Play the sample
-    playSound(audioContextRef.current, pad.frequency, pad.type);
+    // Play actual audio sample
+    audioEngine.playSound(pad.sample);
 
     setTimeout(() => {
       setActivePads(prev => {
@@ -63,37 +68,12 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
 
   const startRecording = async () => {
     try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = createAudioContext();
-      }
-
-      const dest = audioContextRef.current.createMediaStreamDestination();
-      const mediaRecorder = new MediaRecorder(dest.stream);
-      mediaRecorderRef.current = mediaRecorder;
-      recordedChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          recordedChunksRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-        setRecordedAudio(blob);
-        setShowShareModal(true);
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      recordingIntervalRef.current = window.setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
+      // Note: Recording will need Web Audio API or MediaStream setup
+      // For now, this is a placeholder
+      alert('Recording feature coming soon with audio samples!');
     } catch (error) {
       console.error('Error starting recording:', error);
-      alert('Error starting recording. Please check permissions.');
+      alert('Error starting recording.');
     }
   };
 
@@ -160,6 +140,16 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
 
   return (
     <div className="mpc-container">
+      {/* Audio Prompt Banner */}
+      {showAudioPrompt && (
+        <div className="audio-prompt-banner">
+          <span>🔊 Tap to enable sound</span>
+          <button className="audio-enable-btn" onClick={enableAudio}>
+            Enable
+          </button>
+        </div>
+      )}
+
       {/* LCD Screen */}
       <div className="lcd-screen">
         <div className="lcd-content">
