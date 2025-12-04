@@ -16,18 +16,17 @@ export default function MPCSampler() {
 
   const enableAudio = async () => {
     try {
-      console.log('🎵 Enabling audio...');
       await audioEngine.initialize();
-      console.log('✅ Audio enabled!');
       setShowAudioPrompt(false);
     } catch (error) {
-      console.error('❌ Failed to enable audio:', error);
+      alert(`Enable error: ${error}`);
     }
   };
 
   const handlePadTrigger = (padIndex: number) => {
+    alert(`Pad ${padIndex} triggered!`); // DEBUG
+    
     if (!audioEngine.isReady()) {
-      console.warn('⚠️ Audio not ready');
       return;
     }
 
@@ -38,7 +37,8 @@ export default function MPCSampler() {
       navigator.vibrate(10);
     }
 
-    // Play actual audio sample
+    // Play sound
+    alert(`Playing: ${pad.sample}`); // DEBUG
     audioEngine.playSound(pad.sample);
 
     setTimeout(() => {
@@ -54,7 +54,6 @@ export default function MPCSampler() {
 
   return (
     <div className="mpc-container">
-      {/* Audio Prompt Banner */}
       {showAudioPrompt && (
         <div className="audio-prompt-banner">
           <span>🔊 Tap to enable sound</span>
@@ -64,7 +63,6 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* LCD Screen */}
       <div className="lcd-screen">
         <div className="lcd-content">
           <div className="lcd-text">{currentKit.name.toUpperCase()} KIT</div>
@@ -74,7 +72,6 @@ export default function MPCSampler() {
         </div>
       </div>
 
-      {/* Kit Selector */}
       <div className="kit-selector">
         <select
           value={selectedKit}
@@ -89,7 +86,6 @@ export default function MPCSampler() {
         </select>
       </div>
 
-      {/* Pad Grid */}
       <div className="pad-grid">
         {currentKit.pads.map((pad, index) => (
           <button
@@ -99,7 +95,10 @@ export default function MPCSampler() {
               e.preventDefault();
               handlePadTrigger(index);
             }}
-            onMouseDown={() => handlePadTrigger(index)}
+            onMouseDown={(e) => {
+              e.preventDefault(); // ADDED
+              handlePadTrigger(index);
+            }}
           >
             <span className="pad-number">{(index + 1).toString().padStart(2, '0')}</span>
             <span className="pad-name">{pad.name}</span>
