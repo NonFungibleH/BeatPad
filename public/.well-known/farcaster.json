@@ -25,7 +25,7 @@
     "tags": ["music", "creator-tools", "entertainment"],
     "heroImageUrl": "https://based-beats.vercel.app/hero.png",
     "tagline": "Stay based",
-    "ogTitle": "Based Beats - Make Beats Onchain",
+    "ogTitle": "Make Beats Onchain",
     "ogDescription": "Classic MPC sampler for Base. Create, record, and share beats.",
     "ogImageUrl": "https://based-beats.vercel.app/og.png",
     "noindex": false
