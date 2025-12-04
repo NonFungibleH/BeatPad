@@ -18,6 +18,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const [recordingTime, setRecordingTime] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [beatTitle, setBeatTitle] = useState('');
+  const [audioEnabled, setAudioEnabled] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -25,7 +26,6 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const recordingIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    audioContextRef.current = createAudioContext();
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -33,12 +33,28 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     };
   }, []);
 
-  const handlePadTrigger = (padIndex: number) => {
+  const handleEnableAudio = async () => {
+    try {
+      audioContextRef.current = createAudioContext();
+      
+      // Resume AudioContext immediately
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+      
+      setAudioEnabled(true);
+    } catch (error) {
+      console.error('Failed to enable audio:', error);
+      alert('Failed to enable audio. Please try again.');
+    }
+  };
+
+  const handlePadTrigger = async (padIndex: number) => {
     if (!audioContextRef.current) return;
 
-    // ✅ Resume suspended AudioContext for iOS / Base App WebView
+    // Resume suspended AudioContext for iOS / Base App WebView
     if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().catch(e => console.log('Audio resume failed', e));
+      await audioContextRef.current.resume().catch(e => console.log('Audio resume failed', e));
     }
 
     const pad = drumKits[selectedKit].pads[padIndex];
@@ -127,7 +143,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     const url = URL.createObjectURL(recordedAudio);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `based-beat-${Date.now()}.webm`;
+    a.download = `beatpad-${Date.now()}.webm`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -155,6 +171,25 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Show audio enable screen first
+  if (!audioEnabled) {
+    return (
+      <div className="audio-enable-screen">
+        <div className="audio-prompt">
+          <div className="fire-icon">🔥</div>
+          <h2>BeatPad</h2>
+          <p>Tap to enable audio and start making beats</p>
+          <button 
+            className="enable-audio-btn"
+            onClick={handleEnableAudio}
+          >
+            🔊 Enable Sound
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentKit = drumKits[selectedKit];
 
