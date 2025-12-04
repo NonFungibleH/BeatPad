@@ -32,7 +32,7 @@ function App() {
             <header className="app-header">
               <div className="logo">
                 <span className="fire">🔥</span>
-                <span className="title">BASED BEATS</span>
+                <span className="title">BeatPad</span>
               </div>
               <div className="subtitle">by 3UILD</div>
             </header>
