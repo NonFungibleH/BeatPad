@@ -1,7 +1,7 @@
-// Simple HTML5 Audio with aggressive preloading
+// Optimized HTML5 Audio - single play, minimal latency
 
-class SimpleAudioEngine {
-  private audioElements: Map<string, HTMLAudioElement> = new Map();
+class OptimizedAudioEngine {
+  private audioPools: Map<string, HTMLAudioElement[]> = new Map();
   private initialized = false;
 
   async initialize() {
@@ -9,61 +9,60 @@ class SimpleAudioEngine {
 
     const samples = ['kick', 'snare', 'hihat', 'clap', 'tom', 'perc', 'crash', 'rim'];
     
-    // Create and preload audio elements
+    // Create pool of 3 audio elements per sample for polyphony
     for (const sample of samples) {
-      const audio = new Audio(`/samples/${sample}.wav`);
-      audio.preload = 'auto';
-      audio.load(); // Force load
-      this.audioElements.set(sample, audio);
+      const pool: HTMLAudioElement[] = [];
+      
+      for (let i = 0; i < 3; i++) {
+        const audio = new Audio(`/samples/${sample}.wav`);
+        audio.preload = 'auto';
+        audio.volume = 0.8;
+        audio.load();
+        pool.push(audio);
+      }
+      
+      this.audioPools.set(sample, pool);
     }
 
-    // Wait for all to load
-    const loadPromises = Array.from(this.audioElements.values()).map(audio => {
-      return new Promise((resolve) => {
-        if (audio.readyState >= 2) {
-          resolve(true);
-        } else {
-          audio.addEventListener('canplaythrough', () => resolve(true), { once: true });
-          audio.addEventListener('error', () => resolve(false), { once: true });
-        }
-        // Timeout after 3 seconds
-        setTimeout(() => resolve(true), 3000);
-      });
-    });
+    // Wait a moment for preloading
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    await Promise.all(loadPromises);
-
-    // Play silent audio to unlock
+    // Unlock audio with silent play
     const unlock = new Audio('/samples/kick.wav');
     unlock.volume = 0.01;
     try {
       await unlock.play();
       unlock.pause();
     } catch (e) {
-      // Ignore
+      // Ignore unlock errors
     }
 
     this.initialized = true;
-    alert(`✅ Loaded ${this.audioElements.size} samples!`);
+    alert(`✅ Ready! ${samples.length} samples loaded`);
   }
 
   playSound(sampleName: string) {
     if (!this.initialized) {
-      alert('Not initialized!');
       return;
     }
 
-    const audio = this.audioElements.get(sampleName);
+    const pool = this.audioPools.get(sampleName);
+    if (!pool) {
+      return;
+    }
+
+    // Find a paused audio element (not currently playing)
+    let audio = pool.find(a => a.paused);
+    
+    // If all are playing, use the first one (will cut it off)
     if (!audio) {
-      alert(`Sample ${sampleName} not found!`);
-      return;
+      audio = pool[0];
     }
 
-    // Clone and play for instant response
-    const sound = audio.cloneNode() as HTMLAudioElement;
-    sound.volume = 0.8;
-    sound.play().catch(err => {
-      alert(`Play error: ${err.message}`);
+    // Reset to start and play
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Silently fail
     });
   }
 
@@ -72,7 +71,7 @@ class SimpleAudioEngine {
   }
 }
 
-export const audioEngine = new SimpleAudioEngine();
+export const audioEngine = new OptimizedAudioEngine();
 
 export const createAudioContext = () => new AudioContext();
 export const playSound = (_ctx: AudioContext, _freq: number, _type: string) => {};
