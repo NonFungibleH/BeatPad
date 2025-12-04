@@ -38,7 +38,7 @@ class OptimizedAudioEngine {
     }
 
     this.initialized = true;
-    alert(`✅ Ready! ${samples.length} samples loaded`);
+    // REMOVED: alert(`✅ Ready! ${samples.length} samples loaded`);
   }
 
   playSound(sampleName: string) {
