@@ -1,110 +1,76 @@
-import { useState, useEffect } from 'react';
-import { drumKits } from '../config/drumKits';
-import { audioEngine } from '../utils/audioEngine';
-import './MPCSampler.css';
+// Optimized HTML5 Audio - single play, minimal latency
 
-export default function MPCSampler() {
-  const [selectedKit, setSelectedKit] = useState('hiphop');
-  const [activePads, setActivePads] = useState<Record<number, boolean>>({});
-  const [showAudioPrompt, setShowAudioPrompt] = useState(true);
+class OptimizedAudioEngine {
+  private audioPools: Map<string, HTMLAudioElement[]> = new Map();
+  private initialized = false;
 
-  useEffect(() => {
-    return () => {
-      // Cleanup on unmount
-    };
-  }, []);
+  async initialize() {
+    if (this.initialized) return;
 
-  const enableAudio = async () => {
-    try {
-      await audioEngine.initialize();
-      setShowAudioPrompt(false);
-    } catch (error) {
-      alert(`Enable error: ${error}`);
-    }
-  };
-
-  const handlePadTrigger = (padIndex: number) => {
-    alert(`Pad ${padIndex} triggered!`); // DEBUG
+    const samples = ['kick', 'snare', 'hihat', 'clap', 'tom', 'perc', 'crash', 'rim'];
     
-    if (!audioEngine.isReady()) {
+    // Create pool of 3 audio elements per sample for polyphony
+    for (const sample of samples) {
+      const pool: HTMLAudioElement[] = [];
+      
+      for (let i = 0; i < 3; i++) {
+        const audio = new Audio(`/samples/${sample}.wav`);
+        audio.preload = 'auto';
+        audio.volume = 0.8;
+        audio.load();
+        pool.push(audio);
+      }
+      
+      this.audioPools.set(sample, pool);
+    }
+
+    // Wait a moment for preloading
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Unlock audio with silent play
+    const unlock = new Audio('/samples/kick.wav');
+    unlock.volume = 0.01;
+    try {
+      await unlock.play();
+      unlock.pause();
+    } catch (e) {
+      // Ignore unlock errors
+    }
+
+    this.initialized = true;
+  }
+
+  playSound(sampleName: string) {
+    if (!this.initialized) {
       return;
     }
 
-    const pad = drumKits[selectedKit].pads[padIndex];
-    setActivePads(prev => ({ ...prev, [padIndex]: true }));
-
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
+    const pool = this.audioPools.get(sampleName);
+    if (!pool) {
+      return;
     }
 
-    // Play sound
-    alert(`Playing: ${pad.sample}`); // DEBUG
-    audioEngine.playSound(pad.sample);
+    // Find a paused audio element (not currently playing)
+    let audio = pool.find(a => a.paused);
+    
+    // If all are playing, use the first one (will cut it off)
+    if (!audio) {
+      audio = pool[0];
+    }
 
-    setTimeout(() => {
-      setActivePads(prev => {
-        const newState = { ...prev };
-        delete newState[padIndex];
-        return newState;
-      });
-    }, 150);
-  };
+    // Reset to start and play
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Silently fail
+    });
+  }
 
-  const currentKit = drumKits[selectedKit];
-
-  return (
-    <div className="mpc-container">
-      {showAudioPrompt && (
-        <div className="audio-prompt-banner">
-          <span>🔊 Tap to enable sound</span>
-          <button className="audio-enable-btn" onClick={enableAudio}>
-            Enable
-          </button>
-        </div>
-      )}
-
-      <div className="lcd-screen">
-        <div className="lcd-content">
-          <div className="lcd-text">{currentKit.name.toUpperCase()} KIT</div>
-          <div className="lcd-status">
-            <span>TAP PADS TO PLAY</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="kit-selector">
-        <select
-          value={selectedKit}
-          onChange={(e) => setSelectedKit(e.target.value)}
-          className="kit-select"
-        >
-          {Object.entries(drumKits).map(([key, kit]) => (
-            <option key={key} value={key}>
-              {kit.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="pad-grid">
-        {currentKit.pads.map((pad, index) => (
-          <button
-            key={index}
-            className={`pad ${activePads[index] ? 'active' : ''}`}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              handlePadTrigger(index);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault(); // ADDED
-              handlePadTrigger(index);
-            }}
-          >
-            <span className="pad-number">{(index + 1).toString().padStart(2, '0')}</span>
-            <span className="pad-name">{pad.name}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  isReady() {
+    return this.initialized;
+  }
 }
+
+export const audioEngine = new OptimizedAudioEngine();
+
+export const createAudioContext = () => new AudioContext();
+export const playSound = (_ctx: AudioContext, _freq: number, _type: string) => {};
