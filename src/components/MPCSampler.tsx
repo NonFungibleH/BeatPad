@@ -17,7 +17,6 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showAudioPrompt, setShowAudioPrompt] = useState(true);
   const [beatTitle, setBeatTitle] = useState('');
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -26,6 +25,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const recordingIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
+    audioContextRef.current = createAudioContext();
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -33,58 +33,24 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     };
   }, []);
 
-  const enableAudio = async () => {
-    try {
-      console.log('🎵 Creating AudioContext during user tap...');
-      audioContextRef.current = createAudioContext();
-      
-      console.log('📊 Initial state:', audioContextRef.current.state);
-      
-      if (audioContextRef.current.state === 'suspended') {
-        console.log('⏸️ Resuming...');
-        await audioContextRef.current.resume();
-      }
-      
-      console.log('📊 Final state:', audioContextRef.current.state);
-      
-      const osc = audioContextRef.current.createOscillator();
-      const gain = audioContextRef.current.createGain();
-      osc.connect(gain);
-      gain.connect(audioContextRef.current.destination);
-      gain.gain.value = 0.2;
-      osc.frequency.value = 440;
-      osc.start();
-      osc.stop(audioContextRef.current.currentTime + 0.1);
-      
-      console.log('✅ Audio enabled!');
-      setShowAudioPrompt(false);
-    } catch (error) {
-      console.error('❌ Failed to enable audio:', error);
-      alert('Failed to enable audio: ' + error);
-    }
-  };
+  const handlePadTrigger = (padIndex: number) => {
+    if (!audioContextRef.current) return;
 
-  const handlePadTrigger = async (padIndex: number) => {
-    if (!audioContextRef.current) {
-      console.warn('⚠️ Audio not enabled yet');
-      return;
+    // ✅ Resume suspended AudioContext for iOS / Base App WebView
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(e => console.log('Audio resume failed', e));
     }
-
-    console.log('🎹 Pad triggered:', padIndex);
 
     const pad = drumKits[selectedKit].pads[padIndex];
     setActivePads(prev => ({ ...prev, [padIndex]: true }));
 
+    // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
 
-    try {
-      playSound(audioContextRef.current, pad.frequency, pad.type);
-      console.log('🔊 Sound played');
-    } catch (error) {
-      console.error('❌ Sound play error:', error);
-    }
+    // Play the sample
+    playSound(audioContextRef.current, pad.frequency, pad.type);
 
     setTimeout(() => {
       setActivePads(prev => {
@@ -98,8 +64,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const startRecording = async () => {
     try {
       if (!audioContextRef.current) {
-        alert('Please enable audio first!');
-        return;
+        audioContextRef.current = createAudioContext();
       }
 
       const dest = audioContextRef.current.createMediaStreamDestination();
@@ -191,48 +156,11 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const testSimpleAudio = () => {
-    console.log('🧪 Testing simple audio...');
-    
-    const audio = new Audio();
-    audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-    
-    audio.play()
-      .then(() => console.log('✅ HTML5 Audio works!'))
-      .catch(err => console.error('❌ HTML5 Audio failed:', err));
-    
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      console.log('📊 AudioContext state:', ctx.state);
-      
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      gain.gain.value = 0.3;
-      osc.frequency.value = 440;
-      osc.start();
-      osc.stop(ctx.currentTime + 0.2);
-      
-      console.log('✅ Web Audio API works!');
-    } catch (err) {
-      console.error('❌ Web Audio API failed:', err);
-    }
-  };
-
   const currentKit = drumKits[selectedKit];
 
   return (
     <div className="mpc-container">
-      {showAudioPrompt && (
-        <div className="audio-prompt-banner">
-          <span>🔊 Tap to enable sound</span>
-          <button className="audio-enable-btn" onClick={enableAudio}>
-            Enable
-          </button>
-        </div>
-      )}
-
+      {/* LCD Screen */}
       <div className="lcd-screen">
         <div className="lcd-content">
           <div className="lcd-text">{currentKit.name.toUpperCase()} KIT</div>
@@ -249,6 +177,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
         </div>
       </div>
 
+      {/* Kit Selector */}
       <div className="kit-selector">
         <select
           value={selectedKit}
@@ -264,6 +193,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
         </select>
       </div>
 
+      {/* Pad Grid */}
       <div className="pad-grid">
         {currentKit.pads.map((pad, index) => (
           <button
@@ -281,6 +211,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
         ))}
       </div>
 
+      {/* Hardware Controls */}
       <div className="hardware-controls">
         {!isRecording ? (
           <button
@@ -317,6 +248,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
         </button>
       </div>
 
+      {/* Share Modal */}
       {showShareModal && (
         <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -345,25 +277,6 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
           </div>
         </div>
       )}
-
-      <button 
-        onClick={testSimpleAudio}
-        style={{
-          position: 'fixed',
-          bottom: '100px',
-          right: '20px',
-          padding: '16px',
-          background: '#10b981',
-          color: 'white',
-          border: 'none',
-          borderRadius: '12px',
-          fontWeight: 'bold',
-          zIndex: 9999,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-        }}
-      >
-        TEST AUDIO
-      </button>
     </div>
   );
 }
