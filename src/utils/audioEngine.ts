@@ -9,11 +9,10 @@ class AudioSampleEngine {
 
     console.log('🎵 Initializing audio samples...');
 
-    // List of samples to load
+    // List of samples to load (only ones we have)
     const samples = [
       'kick', 'snare', 'hihat', 'clap', 
-      'tom', 'perc', 'crash', 'rim',
-      'cowbell', 'shaker', 'openhat', 'fx'
+      'tom', 'perc', 'crash', 'rim'
     ];
 
     // Create audio pool for each sample (5 instances for polyphony)
@@ -22,7 +21,7 @@ class AudioSampleEngine {
       
       for (let i = 0; i < 5; i++) {
         const audio = new Audio();
-        audio.src = `/samples/${sample}.mp3`;
+        audio.src = `/samples/${sample}.wav`;
         audio.preload = 'auto';
         audio.volume = 0.8;
         pool.push(audio);
@@ -34,7 +33,7 @@ class AudioSampleEngine {
     // Unlock audio on iOS/WebView by playing silent audio
     try {
       const unlock = new Audio();
-      unlock.src = '/samples/kick.mp3';
+      unlock.src = '/samples/kick.wav';
       unlock.volume = 0.01;
       const playPromise = unlock.play();
       
@@ -81,8 +80,8 @@ class AudioSampleEngine {
 
 export const audioEngine = new AudioSampleEngine();
 
-// For compatibility with old code
+// Legacy exports (kept for backwards compatibility but not used)
 export const createAudioContext = () => new AudioContext();
-export const playSound = (ctx: AudioContext, freq: number, type: string) => {
-  // This won't be used anymore but keeping for compatibility
+export const playSound = (_ctx: AudioContext, _freq: number, _type: string) => {
+  // Deprecated - now using audioEngine.playSound()
 };
