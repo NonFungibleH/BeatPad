@@ -12,6 +12,8 @@
     "@coinbase/onchainkit": "^0.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "viem": "2.x",
+    "wagmi": "2.x",
     "@tanstack/react-query": "^5.28.4"
   },
   "devDependencies": {
@@ -25,5 +27,9 @@
     "eslint-plugin-react-refresh": "^0.4.6",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
+  },
+  "overrides": {
+    "viem": "2.x",
+    "wagmi": "2.x"
   }
 }
