@@ -36,14 +36,20 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const handlePadTrigger = (padIndex: number) => {
     if (!audioContextRef.current) return;
 
+    // ✅ Resume suspended AudioContext for iOS / Base App WebView
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().catch(e => console.log('Audio resume failed', e));
+    }
+
     const pad = drumKits[selectedKit].pads[padIndex];
     setActivePads(prev => ({ ...prev, [padIndex]: true }));
-    
+
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
-    
+
+    // Play the sample
     playSound(audioContextRef.current, pad.frequency, pad.type);
 
     setTimeout(() => {
@@ -95,7 +101,7 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
         recordingIntervalRef.current = null;
@@ -131,8 +137,6 @@ export default function MPCSampler({ onBeatCreated }: MPCSamplerProps) {
   const shareToFeed = async () => {
     if (!recordedAudio || !address) return;
 
-    // TODO: Implement API call to backend
-    // For now, just close modal and reset
     console.log('Sharing beat:', {
       title: beatTitle || 'Untitled Beat',
       creator: address,
