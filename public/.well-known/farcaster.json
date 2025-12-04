@@ -16,18 +16,7 @@
     "splashBackgroundColor": "#0a0a0a",
     "subtitle": "Make beats onchain",
     "description": "MPC sampler for Base",
-    "screenshotUrls": [
-      "https://based-beats.vercel.app/screenshot1.png",
-      "https://based-beats.vercel.app/screenshot2.png",
-      "https://based-beats.vercel.app/screenshot3.png"
-    ],
     "primaryCategory": "entertainment",
-    "tags": ["music", "creator-tools"],
-    "heroImageUrl": "https://based-beats.vercel.app/hero.png",
-    "tagline": "Stay based",
-    "ogTitle": "BeatPad - Make Beats Onchain",
-    "ogDescription": "Classic MPC sampler for Base. Create and share beats.",
-    "ogImageUrl": "https://based-beats.vercel.app/og.png",
-    "noindex": false
+    "tags": ["music", "creator-tools"]
   }
 }
