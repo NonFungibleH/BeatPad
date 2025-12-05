@@ -10,12 +10,21 @@ export default function MPCSampler() {
   const [showKitSelector, setShowKitSelector] = useState(false);
   const [tempo, setTempo] = useState(120);
   const [metronomeOn, setMetronomeOn] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [hasRecording, setHasRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const lastTriggerTime = useRef<Map<number, number>>(new Map());
   const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(0));
-  const [beatPosition, setBeatPosition] = useState(0); // 0-7 for 2 bars (8 beats)
+  const [beatPosition, setBeatPosition] = useState(0); // 0-15 for 4 bars (16 beats)
   const metronomeInterval = useRef<number | null>(null);
-  const clickAudio = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const recordedEvents = useRef<Array<{time: number, padIndex: number}>>([]);
+  const recordingStartTime = useRef<number>(0);
+  const playbackTimeout = useRef<number | null>(null);
+
+  // Create metronome click sounds
+  const clickAudioHigh = useRef<HTMLAudioElement | null>(null);
+  const clickAudioLow = useRef<HTMLAudioElement | null>(null);
 
   // Frequency patterns for different drum types
   const frequencyPatterns = {
@@ -30,31 +39,44 @@ export default function MPCSampler() {
   };
 
   useEffect(() => {
-    clickAudio.current = new Audio();
-    clickAudio.current.src = '/samples/rim.wav';
-    clickAudio.current.volume = 0.3;
+    // High click for downbeats (1, 5, 9, 13)
+    clickAudioHigh.current = new Audio();
+    clickAudioHigh.current.src = '/samples/rim.wav';
+    clickAudioHigh.current.volume = 0.6;
+    
+    // Low click for other beats
+    clickAudioLow.current = new Audio();
+    clickAudioLow.current.src = '/samples/rim.wav';
+    clickAudioLow.current.volume = 0.3;
   }, []);
 
-  // Metronome with beat position
+  // Metronome with 16 beat positions
   useEffect(() => {
     if (metronomeOn && audioEngine.isReady()) {
       const interval = (60 / tempo) * 1000;
       metronomeInterval.current = window.setInterval(() => {
-        if (clickAudio.current) {
-          clickAudio.current.currentTime = 0;
-          clickAudio.current.play().catch(() => {});
+        const nextPosition = (beatPosition + 1) % 16;
+        
+        // Play click sound
+        const isDownbeat = nextPosition === 0 || nextPosition === 4 || nextPosition === 8 || nextPosition === 12;
+        const clickSound = isDownbeat ? clickAudioHigh.current : clickAudioLow.current;
+        
+        if (clickSound) {
+          clickSound.currentTime = 0;
+          clickSound.play().catch(() => {});
         }
         
-        // Update beat position (0-7 for 2 bars)
-        setBeatPosition(prev => (prev + 1) % 8);
+        setBeatPosition(nextPosition);
         
-        setEqualizerBars(Array(16).fill(60));
+        // Visual EQ spike on downbeats
+        if (isDownbeat) {
+          setEqualizerBars(Array(16).fill(70));
+          setTimeout(() => setEqualizerBars(Array(16).fill(0)), 80);
+        }
         
-        if ('vibrate' in navigator) {
+        if ('vibrate' in navigator && isDownbeat) {
           navigator.vibrate(5);
         }
-        
-        setTimeout(() => setEqualizerBars(Array(16).fill(0)), 100);
       }, interval);
     } else {
       if (metronomeInterval.current) {
@@ -69,7 +91,7 @@ export default function MPCSampler() {
         clearInterval(metronomeInterval.current);
       }
     };
-  }, [metronomeOn, tempo]);
+  }, [metronomeOn, tempo, beatPosition]);
 
   const enableAudio = async () => {
     try {
@@ -128,6 +150,12 @@ export default function MPCSampler() {
     audioEngine.playSound(pad.sample);
     animateFrequencyPattern(pad.sample);
 
+    // Record event if recording
+    if (isRecording) {
+      const eventTime = Date.now() - recordingStartTime.current;
+      recordedEvents.current.push({ time: eventTime, padIndex });
+    }
+
     setTimeout(() => {
       setActivePads(prev => {
         const newState = { ...prev };
@@ -135,6 +163,38 @@ export default function MPCSampler() {
         return newState;
       });
     }, 150);
+  };
+
+  const startRecording = () => {
+    recordedEvents.current = [];
+    recordingStartTime.current = Date.now();
+    setIsRecording(true);
+    setHasRecording(false);
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    if (recordedEvents.current.length > 0) {
+      setHasRecording(true);
+    }
+  };
+
+  const playRecording = () => {
+    if (recordedEvents.current.length === 0 || isPlaying) return;
+    
+    setIsPlaying(true);
+    
+    recordedEvents.current.forEach(event => {
+      setTimeout(() => {
+        handlePadTrigger(event.padIndex);
+      }, event.time);
+    });
+
+    // Find max time to know when playback ends
+    const maxTime = Math.max(...recordedEvents.current.map(e => e.time));
+    playbackTimeout.current = window.setTimeout(() => {
+      setIsPlaying(false);
+    }, maxTime + 500);
   };
 
   const handleKitSelect = (kitKey: string) => {
@@ -179,21 +239,17 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* Smaller Logo */}
       <div className="beatpad-logo">
         <span className="logo-based">Based</span>
         <span className="logo-beatpad">BeatPad</span>
       </div>
 
-      {/* LCD Screen with separate sections */}
       <div className="lcd-screen-new">
-        {/* Top section - Kit name */}
         <div className="lcd-top-section" onClick={() => setShowKitSelector(true)}>
-          <div className="kit-display">{currentKit.name.toUpperCase()}</div>
-          <div className="kit-hint">TAP TO CHANGE</div>
+          <div className="kit-display">{currentKit.name.toUpperCase()} DRUMS</div>
+          <div className="kit-hint">TAP TO CHANGE SAMPLE KIT</div>
         </div>
 
-        {/* Bottom section - Equalizer */}
         <div className="lcd-eq-section">
           <div className="equalizer-container">
             {equalizerBars.map((height, i) => (
@@ -209,17 +265,17 @@ export default function MPCSampler() {
             ))}
           </div>
 
-          {/* Beat position indicators (2 bars = 8 beats) */}
-          {metronomeOn && (
-            <div className="beat-indicators">
-              {Array(8).fill(0).map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`beat-dot ${i === beatPosition ? 'active' : ''} ${i === 0 || i === 4 ? 'downbeat' : ''}`}
-                />
-              ))}
-            </div>
-          )}
+          {/* 16 beat position indicators */}
+          <div className="beat-indicators-16">
+            {Array(16).fill(0).map((_, i) => (
+              <div 
+                key={i} 
+                className={`beat-dot-16 ${i === beatPosition && metronomeOn ? 'active' : ''} ${
+                  i === 0 || i === 4 || i === 8 || i === 12 ? 'downbeat' : ''
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -266,9 +322,22 @@ export default function MPCSampler() {
           <span className="button-text">METRO</span>
         </button>
 
-        <button className="control-button" onClick={() => setShowKitSelector(true)}>
-          <span className="button-icon">🎛️</span>
-          <span className="button-text">KITS</span>
+        <button 
+          className={`control-button ${isRecording ? 'recording' : ''}`}
+          onClick={isRecording ? stopRecording : startRecording}
+        >
+          <span className="button-icon">●</span>
+          <span className="button-text">{isRecording ? 'STOP' : 'REC'}</span>
+        </button>
+
+        <button 
+          className="control-button"
+          onClick={playRecording}
+          disabled={!hasRecording || isPlaying}
+          style={{ opacity: hasRecording && !isPlaying ? 1 : 0.5 }}
+        >
+          <span className="button-icon">▶</span>
+          <span className="button-text">PLAY</span>
         </button>
       </div>
     </div>
