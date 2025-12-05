@@ -8,7 +8,19 @@ export default function MPCSampler() {
   const [activePads, setActivePads] = useState<Record<number, boolean>>({});
   const [showAudioPrompt, setShowAudioPrompt] = useState(true);
   const [showKitSelector, setShowKitSelector] = useState(false);
+  const [volume, setVolume] = useState(80);
+  const [tempo, setTempo] = useState(120);
   const lastTriggerTime = useRef<Map<number, number>>(new Map());
+  const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(20));
+
+  useEffect(() => {
+    // Animate equalizer bars
+    const interval = setInterval(() => {
+      setEqualizerBars(prev => prev.map(() => Math.random() * 100));
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -48,6 +60,9 @@ export default function MPCSampler() {
 
     audioEngine.playSound(pad.sample);
 
+    // Spike equalizer on hit
+    setEqualizerBars(Array(16).fill(0).map(() => Math.random() * 100));
+
     setTimeout(() => {
       setActivePads(prev => {
         const newState = { ...prev };
@@ -70,8 +85,8 @@ export default function MPCSampler() {
       {showAudioPrompt && (
         <div className="audio-prompt-overlay">
           <div className="audio-prompt-card">
-            <div className="prompt-icon">🔊</div>
-            <h2>Enable Sound</h2>
+            <div className="prompt-icon">🔥</div>
+            <h2>BeatPad</h2>
             <p>Tap to start making beats</p>
             <button className="audio-enable-btn" onClick={enableAudio}>
               Enable Audio
@@ -101,15 +116,34 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* LCD Screen - Larger & Interactive */}
-      <div className="lcd-screen-large" onClick={() => setShowKitSelector(true)}>
-        <div className="lcd-content-large">
-          <div className="lcd-kit-name">{currentKit.name.toUpperCase()}</div>
-          <div className="lcd-instruction">TAP TO CHANGE KIT</div>
+      {/* Logo */}
+      <div className="beatpad-logo">
+        <span className="logo-fire">🔥</span>
+        <span className="logo-text">BeatPad</span>
+      </div>
+
+      {/* LCD Screen with Equalizer */}
+      <div className="lcd-screen-equalizer" onClick={() => setShowKitSelector(true)}>
+        <div className="equalizer-container">
+          {equalizerBars.map((height, i) => (
+            <div key={i} className="eq-bar-wrapper">
+              <div 
+                className="eq-bar" 
+                style={{ 
+                  height: `${height}%`,
+                  opacity: 0.3 + (height / 100) * 0.7
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="lcd-overlay-text">
+          <div className="kit-name-overlay">{currentKit.name.toUpperCase()}</div>
+          <div className="tap-hint">TAP TO CHANGE KIT</div>
         </div>
       </div>
 
-      {/* Pad Grid - Larger */}
+      {/* Pad Grid */}
       <div className="pad-grid-large">
         {currentKit.pads.map((pad, index) => (
           <button
@@ -124,6 +158,50 @@ export default function MPCSampler() {
             <span className="pad-name-large">{pad.name}</span>
           </button>
         ))}
+      </div>
+
+      {/* Control Knobs */}
+      <div className="control-panel">
+        <div className="control-knob">
+          <div className="knob-container">
+            <div className="knob" style={{ transform: `rotate(${(volume / 100) * 270 - 135}deg)` }}>
+              <div className="knob-indicator" />
+            </div>
+          </div>
+          <input 
+            type="range" 
+            min="0" 
+            max="100" 
+            value={volume} 
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="knob-slider"
+          />
+          <div className="knob-label">VOLUME</div>
+          <div className="knob-value">{volume}</div>
+        </div>
+
+        <div className="control-knob">
+          <div className="knob-container">
+            <div className="knob" style={{ transform: `rotate(${((tempo - 60) / 180) * 270 - 135}deg)` }}>
+              <div className="knob-indicator" />
+            </div>
+          </div>
+          <input 
+            type="range" 
+            min="60" 
+            max="240" 
+            value={tempo} 
+            onChange={(e) => setTempo(Number(e.target.value))}
+            className="knob-slider"
+          />
+          <div className="knob-label">BPM</div>
+          <div className="knob-value">{tempo}</div>
+        </div>
+
+        <button className="control-button" onClick={() => setShowKitSelector(true)}>
+          <span className="button-icon">🎛️</span>
+          <span className="button-text">KITS</span>
+        </button>
       </div>
     </div>
   );
