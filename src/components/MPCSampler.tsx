@@ -10,23 +10,37 @@ export default function MPCSampler() {
   const [showKitSelector, setShowKitSelector] = useState(false);
   const [volume, setVolume] = useState(80);
   const [tempo, setTempo] = useState(120);
+  const [metronomeOn, setMetronomeOn] = useState(false);
   const lastTriggerTime = useRef<Map<number, number>>(new Map());
-  const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(20));
+  const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(0));
+  const metronomeInterval = useRef<number | null>(null);
 
+  // Metronome
   useEffect(() => {
-    // Animate equalizer bars
-    const interval = setInterval(() => {
-      setEqualizerBars(prev => prev.map(() => Math.random() * 100));
-    }, 100);
+    if (metronomeOn) {
+      const interval = (60 / tempo) * 1000; // Convert BPM to milliseconds
+      metronomeInterval.current = window.setInterval(() => {
+        // Visual click
+        setEqualizerBars(Array(16).fill(60));
+        // Haptic
+        if ('vibrate' in navigator) {
+          navigator.vibrate(5);
+        }
+        // Reset bars
+        setTimeout(() => setEqualizerBars(Array(16).fill(0)), 100);
+      }, interval);
+    } else {
+      if (metronomeInterval.current) {
+        clearInterval(metronomeInterval.current);
+      }
+    }
 
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     return () => {
-      // Cleanup on unmount
+      if (metronomeInterval.current) {
+        clearInterval(metronomeInterval.current);
+      }
     };
-  }, []);
+  }, [metronomeOn, tempo]);
 
   const enableAudio = async () => {
     try {
@@ -61,7 +75,8 @@ export default function MPCSampler() {
     audioEngine.playSound(pad.sample);
 
     // Spike equalizer on hit
-    setEqualizerBars(Array(16).fill(0).map(() => Math.random() * 100));
+    setEqualizerBars(Array(16).fill(0).map(() => 50 + Math.random() * 50));
+    setTimeout(() => setEqualizerBars(Array(16).fill(0)), 150);
 
     setTimeout(() => {
       setActivePads(prev => {
@@ -81,7 +96,7 @@ export default function MPCSampler() {
 
   return (
     <div className="mpc-fullscreen">
-      {/* Audio Prompt Banner */}
+      {/* Audio Prompt */}
       {showAudioPrompt && (
         <div className="audio-prompt-overlay">
           <div className="audio-prompt-card">
@@ -131,7 +146,7 @@ export default function MPCSampler() {
                 className="eq-bar" 
                 style={{ 
                   height: `${height}%`,
-                  opacity: 0.3 + (height / 100) * 0.7
+                  opacity: height > 0 ? 0.8 : 0.1
                 }}
               />
             </div>
@@ -160,7 +175,7 @@ export default function MPCSampler() {
         ))}
       </div>
 
-      {/* Control Knobs */}
+      {/* Control Panel */}
       <div className="control-panel">
         <div className="control-knob">
           <div className="knob-container">
@@ -197,6 +212,14 @@ export default function MPCSampler() {
           <div className="knob-label">BPM</div>
           <div className="knob-value">{tempo}</div>
         </div>
+
+        <button 
+          className={`control-button ${metronomeOn ? 'active' : ''}`}
+          onClick={() => setMetronomeOn(!metronomeOn)}
+        >
+          <span className="button-icon">{metronomeOn ? '⏸️' : '▶️'}</span>
+          <span className="button-text">METRO</span>
+        </button>
 
         <button className="control-button" onClick={() => setShowKitSelector(true)}>
           <span className="button-icon">🎛️</span>
