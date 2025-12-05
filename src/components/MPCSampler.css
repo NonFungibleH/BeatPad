@@ -1,320 +1,243 @@
-/* Fullscreen Layout */
-.mpc-fullscreen {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  padding-bottom: 20px;
-}
-
-/* Audio Prompt Overlay */
-.audio-prompt-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+/* Logo */
+.beatpad-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
-  padding: 20px;
-}
-
-.audio-prompt-card {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border: 2px solid #ff6b35;
-  border-radius: 24px;
-  padding: 40px;
-  text-align: center;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.4);
-}
-
-.prompt-icon {
-  font-size: 64px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.audio-prompt-card h2 {
-  color: #fbbf24;
-  font-size: 28px;
-  font-family: 'Courier New', monospace;
-  margin: 0 0 12px 0;
-  letter-spacing: 2px;
+.logo-fire {
+  font-size: 36px;
+  animation: logoFlame 2s ease-in-out infinite;
 }
 
-.audio-prompt-card p {
-  color: #9ca3af;
-  font-size: 16px;
-  margin-bottom: 28px;
+@keyframes logoFlame {
+  0%, 100% { 
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
+  }
+  50% { 
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 16px rgba(255, 107, 53, 0.9));
+  }
 }
 
-.audio-enable-btn {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  color: white;
-  border: none;
-  padding: 16px 48px;
-  border-radius: 12px;
-  font-size: 18px;
+.logo-text {
+  font-size: 32px;
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
-  transition: all 0.3s ease;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
 }
 
-.audio-enable-btn:active {
-  transform: scale(0.95);
-}
-
-/* Large LCD Screen */
-.lcd-screen-large {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+/* LCD Screen with Equalizer */
+.lcd-screen-equalizer {
+  background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
   border: 4px solid #000;
   border-radius: 16px;
-  padding: 32px;
+  padding: 24px;
   margin-bottom: 24px;
   box-shadow: 
-    inset 0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 4px 12px rgba(0, 0, 0, 0.8),
     0 4px 8px rgba(0, 0, 0, 0.4);
   position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.lcd-screen-large:active {
-  transform: scale(0.98);
-}
-
-.lcd-screen-large::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.1) 2px,
-    rgba(0, 0, 0, 0.1) 4px
-  );
-  pointer-events: none;
-  border-radius: 12px;
-}
-
-.lcd-content-large {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  font-family: 'Courier New', monospace;
-}
-
-.lcd-kit-name {
-  color: #fbbf24;
-  font-size: 32px;
-  font-weight: bold;
-  letter-spacing: 4px;
-  text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
-  margin-bottom: 12px;
-}
-
-.lcd-instruction {
-  color: #ff6b35;
-  font-size: 14px;
-  letter-spacing: 2px;
-  opacity: 0.8;
-}
-
-/* Kit Selector Modal */
-.kit-selector-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+  min-height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 20px;
+  overflow: hidden;
 }
 
-.kit-selector-content {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border: 2px solid rgba(255, 107, 53, 0.3);
-  border-radius: 24px;
-  padding: 32px;
-  max-width: 500px;
+.equalizer-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 80px;
   width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
+  gap: 4px;
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
 }
 
-.kit-selector-content h2 {
-  color: #fbbf24;
-  font-size: 28px;
-  font-family: 'Courier New', monospace;
-  margin: 0 0 24px 0;
+.eq-bar-wrapper {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.eq-bar {
+  width: 100%;
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+  border-radius: 2px 2px 0 0;
+  transition: height 0.1s ease-out, opacity 0.1s ease-out;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.lcd-overlay-text {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  letter-spacing: 2px;
+  pointer-events: none;
 }
 
-.kit-options {
+.kit-name-overlay {
+  font-family: 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: bold;
+  color: #fbbf24;
+  letter-spacing: 4px;
+  text-shadow: 
+    0 0 20px rgba(251, 191, 36, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 8px;
+}
+
+.tap-hint {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #ff6b35;
+  letter-spacing: 2px;
+  opacity: 0.7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Control Panel */
+.control-panel {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border-radius: 16px;
+  border: 2px solid #0a0a0a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.control-knob {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.kit-option {
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(255, 107, 53, 0.3);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  gap: 8px;
 }
 
-.kit-option:active {
-  transform: scale(0.98);
+.knob-container {
+  width: 60px;
+  height: 60px;
+  position: relative;
 }
 
-.kit-option.selected {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-color: #ff8c5a;
-}
-
-.kit-name {
-  color: #f3f4f6;
-  font-size: 20px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.kit-option.selected .kit-name {
-  color: white;
-}
-
-.check-mark {
-  font-size: 24px;
-  color: white;
-}
-
-/* Large Pad Grid */
-.pad-grid-large {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  flex: 1;
-}
-
-.pad-large {
+.knob {
+  width: 100%;
+  height: 100%;
   background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-  border: 4px solid #1a1a1a;
-  border-radius: 16px;
+  border: 3px solid #000;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  transition: transform 0.1s ease-out;
+}
+
+.knob-indicator {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 12px;
+  background: #ff6b35;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.8);
+}
+
+.knob-slider {
+  position: absolute;
+  opacity: 0;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+}
+
+.knob-label {
+  font-size: 10px;
+  font-weight: bold;
+  color: #9ca3af;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+}
+
+.knob-value {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fbbf24;
+  font-family: 'Courier New', monospace;
+}
+
+.control-button {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.15s ease;
-  box-shadow: 
-    0 6px 12px rgba(0, 0, 0, 0.5),
-    inset 0 2px 0 rgba(255, 255, 255, 0.1);
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  min-height: 100px;
-}
-
-.pad-large:active,
-.pad-large.active {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-color: #ff8c5a;
-  transform: scale(0.94);
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(255, 107, 53, 0.8),
-    inset 0 0 30px rgba(255, 255, 255, 0.2);
+  border: 3px solid #000;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.4);
 }
 
-.pad-number-large {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-size: 14px;
+.control-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(255, 107, 53, 0.6);
+}
+
+.button-icon {
+  font-size: 24px;
+}
+
+.button-text {
+  font-size: 11px;
   font-weight: bold;
-  color: #6b7280;
+  color: white;
+  letter-spacing: 1px;
   font-family: 'Courier New', monospace;
 }
 
-.pad-large.active .pad-number-large {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.pad-name-large {
-  font-size: 14px;
-  font-weight: 700;
-  color: #9ca3af;
-  letter-spacing: 1px;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.pad-large.active .pad-name-large {
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Mobile Responsive */
+/* Mobile adjustments */
 @media (max-width: 768px) {
-  .mpc-fullscreen {
-    padding: 16px;
-  }
-
-  .lcd-kit-name {
+  .logo-text {
     font-size: 24px;
   }
 
-  .lcd-instruction {
-    font-size: 12px;
+  .logo-fire {
+    font-size: 28px;
   }
 
-  .pad-grid-large {
-    gap: 12px;
-  }
-
-  .pad-name-large {
-    font-size: 11px;
-  }
-
-  .pad-large {
-    min-height: 80px;
-  }
-}
-
-@media (max-height: 700px) {
-  .lcd-screen-large {
-    padding: 20px;
-  }
-
-  .lcd-kit-name {
+  .kit-name-overlay {
     font-size: 20px;
   }
 
-  .pad-large {
-    min-height: 70px;
+  .control-panel {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .knob-container {
+    width: 50px;
+    height: 50px;
   }
 }
