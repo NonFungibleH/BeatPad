@@ -71,40 +71,40 @@
   transform: scale(0.95);
 }
 
-/* Logo */
+/* Logo - Based BeatPad */
 .beatpad-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 20px;
+  justify-content: flex-start;
 }
 
-.logo-fire {
-  font-size: 36px;
-  animation: logoFlame 2s ease-in-out infinite;
-}
-
-@keyframes logoFlame {
-  0%, 100% { 
-    transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
-  }
-  50% { 
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 16px rgba(255, 107, 53, 0.9));
-  }
-}
-
-.logo-text {
+.logo-based {
   font-size: 32px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 3px;
+  color: #3b82f6;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.logo-beatpad {
+  font-size: 32px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  color: #ff6b35;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+}
+
+/* Remove old logo styles if they exist */
+.logo-fire {
+  display: none;
+}
+
+.logo-text {
+  display: none;
 }
 
 /* LCD Screen with Equalizer */
