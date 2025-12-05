@@ -8,16 +8,16 @@ export default function MPCSampler() {
   const [activePads, setActivePads] = useState<Record<number, boolean>>({});
   const [showAudioPrompt, setShowAudioPrompt] = useState(true);
   const [showKitSelector, setShowKitSelector] = useState(false);
-  const [volume, setVolume] = useState(80);
   const [tempo, setTempo] = useState(120);
   const [metronomeOn, setMetronomeOn] = useState(false);
   const lastTriggerTime = useRef<Map<number, number>>(new Map());
   const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(0));
+  const [beatPosition, setBeatPosition] = useState(0); // 0-7 for 2 bars (8 beats)
   const metronomeInterval = useRef<number | null>(null);
   const clickAudio = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Frequency patterns for different drum types (simulate real frequency response)
+  // Frequency patterns for different drum types
   const frequencyPatterns = {
     kick: [90, 75, 50, 30, 20, 15, 10, 8, 5, 3, 2, 1, 0, 0, 0, 0],
     snare: [20, 30, 60, 80, 90, 75, 50, 35, 20, 15, 10, 8, 5, 3, 2, 1],
@@ -35,6 +35,7 @@ export default function MPCSampler() {
     clickAudio.current.volume = 0.3;
   }, []);
 
+  // Metronome with beat position
   useEffect(() => {
     if (metronomeOn && audioEngine.isReady()) {
       const interval = (60 / tempo) * 1000;
@@ -43,6 +44,9 @@ export default function MPCSampler() {
           clickAudio.current.currentTime = 0;
           clickAudio.current.play().catch(() => {});
         }
+        
+        // Update beat position (0-7 for 2 bars)
+        setBeatPosition(prev => (prev + 1) % 8);
         
         setEqualizerBars(Array(16).fill(60));
         
@@ -56,6 +60,7 @@ export default function MPCSampler() {
       if (metronomeInterval.current) {
         clearInterval(metronomeInterval.current);
       }
+      setBeatPosition(0);
       setEqualizerBars(Array(16).fill(0));
     }
 
@@ -79,7 +84,6 @@ export default function MPCSampler() {
     const pattern = frequencyPatterns[sampleType as keyof typeof frequencyPatterns] || 
                     frequencyPatterns.perc;
     
-    // Animate the pattern
     let frame = 0;
     const animate = () => {
       if (frame < 15) {
@@ -122,8 +126,6 @@ export default function MPCSampler() {
     }
 
     audioEngine.playSound(pad.sample);
-
-    // Animate equalizer with sample-specific frequency pattern
     animateFrequencyPattern(pad.sample);
 
     setTimeout(() => {
@@ -177,29 +179,47 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* New Logo */}
+      {/* Smaller Logo */}
       <div className="beatpad-logo">
         <span className="logo-based">Based</span>
         <span className="logo-beatpad">BeatPad</span>
       </div>
 
-      <div className="lcd-screen-equalizer" onClick={() => setShowKitSelector(true)}>
-        <div className="equalizer-container">
-          {equalizerBars.map((height, i) => (
-            <div key={i} className="eq-bar-wrapper">
-              <div 
-                className="eq-bar" 
-                style={{ 
-                  height: `${height}%`,
-                  opacity: height > 0 ? 0.8 : 0.1
-                }}
-              />
-            </div>
-          ))}
+      {/* LCD Screen with separate sections */}
+      <div className="lcd-screen-new">
+        {/* Top section - Kit name */}
+        <div className="lcd-top-section" onClick={() => setShowKitSelector(true)}>
+          <div className="kit-display">{currentKit.name.toUpperCase()}</div>
+          <div className="kit-hint">TAP TO CHANGE</div>
         </div>
-        <div className="lcd-overlay-text">
-          <div className="kit-name-overlay">{currentKit.name.toUpperCase()}</div>
-          <div className="tap-hint">TAP TO CHANGE KIT</div>
+
+        {/* Bottom section - Equalizer */}
+        <div className="lcd-eq-section">
+          <div className="equalizer-container">
+            {equalizerBars.map((height, i) => (
+              <div key={i} className="eq-bar-wrapper">
+                <div 
+                  className="eq-bar" 
+                  style={{ 
+                    height: `${height}%`,
+                    opacity: height > 0 ? 0.8 : 0.1
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Beat position indicators (2 bars = 8 beats) */}
+          {metronomeOn && (
+            <div className="beat-indicators">
+              {Array(8).fill(0).map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`beat-dot ${i === beatPosition ? 'active' : ''} ${i === 0 || i === 4 ? 'downbeat' : ''}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -220,24 +240,6 @@ export default function MPCSampler() {
       </div>
 
       <div className="control-panel">
-        <div className="control-knob">
-          <div className="knob-container">
-            <div className="knob" style={{ transform: `rotate(${(volume / 100) * 270 - 135}deg)` }}>
-              <div className="knob-indicator" />
-            </div>
-          </div>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            value={volume} 
-            onChange={(e) => setVolume(Number(e.target.value))}
-            className="knob-slider"
-          />
-          <div className="knob-label">VOLUME</div>
-          <div className="knob-value">{volume}</div>
-        </div>
-
         <div className="control-knob">
           <div className="knob-container">
             <div className="knob" style={{ transform: `rotate(${((tempo - 60) / 180) * 270 - 135}deg)` }}>
