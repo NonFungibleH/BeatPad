@@ -3,13 +3,14 @@
   box-sizing: border-box;
 }
 
-/* Fullscreen Layout */
+/* Fullscreen Layout - Better spacing to fit everything */
 .mpc-fullscreen {
   min-height: 100vh;
   background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 14px;
+  gap: 12px;
 }
 
 /* Audio Prompt Overlay */
@@ -74,16 +75,16 @@
   transform: scale(0.95);
 }
 
-/* Logo */
+/* Logo - Smaller */
 .beatpad-logo {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .logo-based {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   color: #1e40af;
@@ -91,19 +92,19 @@
 }
 
 .logo-beatpad {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   color: #ff6b35;
   letter-spacing: 1px;
 }
 
-/* LCD Screen */
+/* LCD Screen - Smaller */
 .lcd-screen-new {
   background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
-  border: 4px solid #000;
-  border-radius: 16px;
-  margin-bottom: 20px;
+  border: 3px solid #000;
+  border-radius: 14px;
+  margin-bottom: 0;
   box-shadow: 
     inset 0 4px 12px rgba(0, 0, 0, 0.8),
     0 4px 8px rgba(0, 0, 0, 0.4);
@@ -111,7 +112,7 @@
 }
 
 .lcd-top-section {
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: rgba(0, 0, 0, 0.3);
   border-bottom: 2px solid rgba(0, 0, 0, 0.5);
   cursor: pointer;
@@ -123,17 +124,17 @@
 
 .kit-display {
   font-family: 'Courier New', monospace;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: #fbbf24;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .kit-hint {
   font-family: 'Courier New', monospace;
-  font-size: 9px;
+  font-size: 8px;
   color: #ff6b35;
   letter-spacing: 1px;
   opacity: 0.6;
@@ -141,18 +142,18 @@
 }
 
 .lcd-eq-section {
-  padding: 20px 24px;
+  padding: 14px 20px;
   position: relative;
-  min-height: 100px;
+  min-height: 85px;
 }
 
 .equalizer-container {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  height: 80px;
+  height: 65px;
   width: 100%;
-  gap: 4px;
+  gap: 3px;
 }
 
 .eq-bar-wrapper {
@@ -169,32 +170,39 @@
   transition: height 0.1s ease-out;
 }
 
-.beat-indicators {
+/* 16 Beat Indicators - Aligned Baseline */
+.beat-indicators-16 {
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  gap: 3px;
+  align-items: flex-end;
+  justify-content: space-between;
   margin-top: 12px;
-}
-
-.beat-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(156, 163, 175, 0.3);
-  border: 1px solid rgba(156, 163, 175, 0.5);
-  transition: all 0.1s ease;
-}
-
-.beat-dot.downbeat {
-  width: 10px;
+  width: 100%;
   height: 10px;
 }
 
-.beat-dot.active {
+.beat-dot-16 {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(156, 163, 175, 0.2);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  transition: all 0.1s ease;
+}
+
+.beat-dot-16.downbeat {
+  height: 8px;
+  background: rgba(156, 163, 175, 0.3);
+}
+
+.beat-dot-16.active {
   background: #ff6b35;
   border-color: #ff8c5a;
   box-shadow: 0 0 12px rgba(255, 107, 53, 0.8);
-  transform: scale(1.3);
+}
+
+.beat-dot-16.active.downbeat {
+  height: 10px;
 }
 
 /* Kit Selector Modal */
@@ -271,33 +279,33 @@
   color: white;
 }
 
-/* Pad Grid */
+/* Pad Grid - Smaller */
 .pad-grid-large {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 10px;
   flex: 1;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .pad-large {
   background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-  border: 4px solid #1a1a1a;
-  border-radius: 16px;
+  border: 3px solid #1a1a1a;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   position: relative;
   transition: all 0.15s ease;
   box-shadow: 
-    0 6px 12px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.5),
     inset 0 2px 0 rgba(255, 255, 255, 0.1);
   user-select: none;
   touch-action: manipulation;
-  min-height: 85px;
+  min-height: 68px;
 }
 
 .pad-large:active,
@@ -325,10 +333,10 @@
 }
 
 .pad-name-large {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: #9ca3af;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -337,14 +345,14 @@
   color: #fff;
 }
 
-/* Control Panel */
+/* Control Panel - Smaller to fit */
 .control-panel {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px;
-  padding: 18px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 14px;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-radius: 16px;
+  border-radius: 14px;
   border: 2px solid #0a0a0a;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
@@ -353,12 +361,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .knob-container {
-  width: 55px;
-  height: 55px;
+  width: 48px;
+  height: 48px;
   position: relative;
 }
 
@@ -366,7 +374,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-  border: 3px solid #000;
+  border: 2px solid #000;
   border-radius: 50%;
   position: relative;
   box-shadow: 
@@ -388,21 +396,21 @@
 .knob-slider {
   position: absolute;
   opacity: 0;
-  width: 55px;
-  height: 55px;
+  width: 48px;
+  height: 48px;
   cursor: pointer;
 }
 
 .knob-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: bold;
   color: #9ca3af;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   font-family: 'Courier New', monospace;
 }
 
 .knob-value {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   color: #fbbf24;
   font-family: 'Courier New', monospace;
@@ -413,13 +421,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border: 3px solid #000;
-  border-radius: 12px;
-  padding: 10px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 8px 6px;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 3px 6px rgba(255, 107, 53, 0.4);
 }
 
 .control-button:active {
@@ -430,49 +438,6 @@
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.button-icon {
-  font-size: 22px;
-}
-
-.button-text {
-  font-size: 10px;
-  font-weight: bold;
-  color: white;
-  letter-spacing: 1px;
-  font-family: 'Courier New', monospace;
-}
-
-/* 16 Beat Indicators - Full Width */
-.beat-indicators-16 {
-  display: flex;
-  gap: 3px;
-  justify-content: space-between;
-  margin-top: 12px;
-  width: 100%;
-}
-
-.beat-dot-16 {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(156, 163, 175, 0.2);
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  transition: all 0.1s ease;
-}
-
-.beat-dot-16.downbeat {
-  height: 8px;
-  background: rgba(156, 163, 175, 0.3);
-}
-
-.beat-dot-16.active {
-  background: #ff6b35;
-  border-color: #ff8c5a;
-  box-shadow: 0 0 12px rgba(255, 107, 53, 0.8);
-  height: 10px;
-}
-
-/* Recording button state */
 .control-button.recording {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   animation: recordPulse 1s ease-in-out infinite;
@@ -487,23 +452,23 @@
   }
 }
 
-/* 4 button control panel */
-.control-panel {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 12px;
-  padding: 18px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-radius: 16px;
-  border: 2px solid #0a0a0a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+.button-icon {
+  font-size: 18px;
 }
 
+.button-text {
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0.5px;
+  font-family: 'Courier New', monospace;
+}
 
 /* Mobile */
 @media (max-width: 768px) {
   .mpc-fullscreen {
-    padding: 14px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .logo-based, .logo-beatpad {
@@ -511,18 +476,33 @@
   }
 
   .kit-display {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .pad-grid-large {
-    gap: 10px;
+    gap: 8px;
   }
 
   .pad-large {
-    min-height: 75px;
+    min-height: 65px;
   }
 
   .pad-name-large {
-    font-size: 11px;
+    font-size: 10px;
+  }
+
+  .control-panel {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .knob-container {
+    width: 44px;
+    height: 44px;
+  }
+
+  .knob-slider {
+    width: 44px;
+    height: 44px;
   }
 }
