@@ -39,68 +39,68 @@ export default function MPCSampler() {
   };
 
   useEffect(() => {
-    // High click for downbeats (1, 5, 9, 13)
-    clickAudioHigh.current = new Audio();
-    clickAudioHigh.current.src = '/samples/rim.wav';
-    clickAudioHigh.current.volume = 0.6;
-    
-    // Low click for other beats
-    clickAudioLow.current = new Audio();
-    clickAudioLow.current.src = '/samples/rim.wav';
-    clickAudioLow.current.volume = 0.3;
-  }, []);
+  // High click for downbeats - use hihat sample for click
+  clickAudioHigh.current = new Audio();
+  clickAudioHigh.current.src = '/samples/hihat.wav';
+  clickAudioHigh.current.volume = 0.5;
+  
+  // Low click for other beats
+  clickAudioLow.current = new Audio();
+  clickAudioLow.current.src = '/samples/hihat.wav';
+  clickAudioLow.current.volume = 0.2;
+}, []);
 
-  // Metronome with 16 beat positions
-  useEffect(() => {
-    if (metronomeOn && audioEngine.isReady()) {
-      const interval = (60 / tempo) * 1000;
-      metronomeInterval.current = window.setInterval(() => {
-        const nextPosition = (beatPosition + 1) % 16;
-        
-        // Play click sound
-        const isDownbeat = nextPosition === 0 || nextPosition === 4 || nextPosition === 8 || nextPosition === 12;
-        const clickSound = isDownbeat ? clickAudioHigh.current : clickAudioLow.current;
-        
-        if (clickSound) {
-          clickSound.currentTime = 0;
-          clickSound.play().catch(() => {});
-        }
-        
-        setBeatPosition(nextPosition);
-        
-        // Visual EQ spike on downbeats
-        if (isDownbeat) {
-          setEqualizerBars(Array(16).fill(70));
-          setTimeout(() => setEqualizerBars(Array(16).fill(0)), 80);
-        }
-        
-        if ('vibrate' in navigator && isDownbeat) {
-          navigator.vibrate(5);
-        }
-      }, interval);
-    } else {
-      if (metronomeInterval.current) {
-        clearInterval(metronomeInterval.current);
+// Metronome with 16 beat positions
+useEffect(() => {
+  if (metronomeOn && audioEngine.isReady()) {
+    const interval = (60 / tempo) * 1000;
+    metronomeInterval.current = window.setInterval(() => {
+      const nextPosition = (beatPosition + 1) % 16;
+      
+      // Play click sound
+      const isDownbeat = nextPosition === 0 || nextPosition === 4 || nextPosition === 8 || nextPosition === 12;
+      const clickSound = isDownbeat ? clickAudioHigh.current : clickAudioLow.current;
+      
+      if (clickSound) {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(() => {});
       }
-      setBeatPosition(0);
-      setEqualizerBars(Array(16).fill(0));
+      
+      setBeatPosition(nextPosition);
+      
+      // Visual EQ spike on downbeats
+      if (isDownbeat) {
+        setEqualizerBars(Array(16).fill(70));
+        setTimeout(() => setEqualizerBars(Array(16).fill(0)), 80);
+      }
+      
+      if ('vibrate' in navigator && isDownbeat) {
+        navigator.vibrate(5);
+      }
+    }, interval);
+  } else {
+    if (metronomeInterval.current) {
+      clearInterval(metronomeInterval.current);
     }
+    setBeatPosition(0);
+    setEqualizerBars(Array(16).fill(0));
+  }
 
-    return () => {
-      if (metronomeInterval.current) {
-        clearInterval(metronomeInterval.current);
-      }
-    };
-  }, [metronomeOn, tempo, beatPosition]);
-
-  const enableAudio = async () => {
-    try {
-      await audioEngine.initialize();
-      setShowAudioPrompt(false);
-    } catch (error) {
-      console.error('Audio enable error:', error);
+  return () => {
+    if (metronomeInterval.current) {
+      clearInterval(metronomeInterval.current);
     }
   };
+}, [metronomeOn, tempo, beatPosition]);
+
+const enableAudio = async () => {
+  try {
+    await audioEngine.initialize();
+    setShowAudioPrompt(false);
+  } catch (error) {
+    console.error('Audio enable error:', error);
+  }
+};
 
   const animateFrequencyPattern = (sampleType: string) => {
     const pattern = frequencyPatterns[sampleType as keyof typeof frequencyPatterns] || 
