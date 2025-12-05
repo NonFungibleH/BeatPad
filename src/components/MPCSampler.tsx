@@ -15,8 +15,6 @@ export default function MPCSampler() {
   const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(0));
   const metronomeInterval = useRef<number | null>(null);
   const clickAudio = useRef<HTMLAudioElement | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   // Frequency patterns for different drum types (simulate real frequency response)
