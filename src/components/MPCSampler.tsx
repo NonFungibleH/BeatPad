@@ -14,25 +14,41 @@ export default function MPCSampler() {
   const lastTriggerTime = useRef<Map<number, number>>(new Map());
   const [equalizerBars, setEqualizerBars] = useState<number[]>(Array(16).fill(0));
   const metronomeInterval = useRef<number | null>(null);
+  const clickAudio = useRef<HTMLAudioElement | null>(null);
+
+  // Create metronome click sound
+  useEffect(() => {
+    clickAudio.current = new Audio();
+    clickAudio.current.src = '/samples/rim.wav'; // Use rim sample for click
+    clickAudio.current.volume = 0.3;
+  }, []);
 
   // Metronome
   useEffect(() => {
-    if (metronomeOn) {
-      const interval = (60 / tempo) * 1000; // Convert BPM to milliseconds
+    if (metronomeOn && audioEngine.isReady()) {
+      const interval = (60 / tempo) * 1000;
       metronomeInterval.current = window.setInterval(() => {
-        // Visual click
+        // Play click sound
+        if (clickAudio.current) {
+          clickAudio.current.currentTime = 0;
+          clickAudio.current.play().catch(() => {});
+        }
+        
+        // Visual
         setEqualizerBars(Array(16).fill(60));
+        
         // Haptic
         if ('vibrate' in navigator) {
           navigator.vibrate(5);
         }
-        // Reset bars
+        
         setTimeout(() => setEqualizerBars(Array(16).fill(0)), 100);
       }, interval);
     } else {
       if (metronomeInterval.current) {
         clearInterval(metronomeInterval.current);
       }
+      setEqualizerBars(Array(16).fill(0));
     }
 
     return () => {
@@ -74,9 +90,13 @@ export default function MPCSampler() {
 
     audioEngine.playSound(pad.sample);
 
-    // Spike equalizer on hit
+    // Spike equalizer
     setEqualizerBars(Array(16).fill(0).map(() => 50 + Math.random() * 50));
-    setTimeout(() => setEqualizerBars(Array(16).fill(0)), 150);
+    setTimeout(() => {
+      if (!metronomeOn) {
+        setEqualizerBars(Array(16).fill(0));
+      }
+    }, 150);
 
     setTimeout(() => {
       setActivePads(prev => {
@@ -96,7 +116,6 @@ export default function MPCSampler() {
 
   return (
     <div className="mpc-fullscreen">
-      {/* Audio Prompt */}
       {showAudioPrompt && (
         <div className="audio-prompt-overlay">
           <div className="audio-prompt-card">
@@ -110,7 +129,6 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* Kit Selector Modal */}
       {showKitSelector && (
         <div className="kit-selector-modal" onClick={() => setShowKitSelector(false)}>
           <div className="kit-selector-content" onClick={(e) => e.stopPropagation()}>
@@ -131,13 +149,11 @@ export default function MPCSampler() {
         </div>
       )}
 
-      {/* Logo */}
       <div className="beatpad-logo">
         <span className="logo-fire">🔥</span>
         <span className="logo-text">BeatPad</span>
       </div>
 
-      {/* LCD Screen with Equalizer */}
       <div className="lcd-screen-equalizer" onClick={() => setShowKitSelector(true)}>
         <div className="equalizer-container">
           {equalizerBars.map((height, i) => (
@@ -158,7 +174,6 @@ export default function MPCSampler() {
         </div>
       </div>
 
-      {/* Pad Grid */}
       <div className="pad-grid-large">
         {currentKit.pads.map((pad, index) => (
           <button
@@ -175,7 +190,6 @@ export default function MPCSampler() {
         ))}
       </div>
 
-      {/* Control Panel */}
       <div className="control-panel">
         <div className="control-knob">
           <div className="knob-container">
